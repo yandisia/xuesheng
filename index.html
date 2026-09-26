@@ -153,7 +153,35 @@ function ui(){
   $("inp").value="";$("fb").textContent="试着拼写听到的内容吧~";$("fb").className="fb";$("pv").disabled=ci===0;$("nx").disabled=ci===cl.length-1;drawDots()
 }
 function drawDots(){var d=$("dots");d.innerHTML="";cl.forEach(function(_,i){var dot=document.createElement("div");dot.className="dot"+(i===ci?" on":"");dot.onclick=function(){if(i!==ci){ci=i;ui()}};d.appendChild(dot)})}
-function speak(auto){if(!cl.length)return;if(!window.speechSynthesis){if(!auto)alert("浏览器不支持朗读，请用 Chrome 或 Edge。");return}if(!voicesReady){loadVoices();if(!voicesReady){if(!auto)alert("语音加载中，请再试一次。");return}}window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(cl[ci].en);u.lang="en-US";u.rate=ct==="sentence"?0.75:0.85;u.pitch=1;u.volume=1;if(englishVoice)u.voice=englishVoice;window.speechSynthesis.speak(u)}
+function speak(auto){
+  if(!cl.length)return;
+  
+  if(!window.speechSynthesis){
+    if(!auto) alert("当前环境不支持语音朗读。\n请点击右上角，选择“用其他应用打开”。");
+    return;
+  }
+  
+  // 尝试加载语音，但不强制拦截
+  if(!voicesReady) loadVoices();
+  
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.resume();
+  
+  var u=new SpeechSynthesisUtterance(cl[ci].en);
+  u.lang="en-US";
+  u.rate=ct==="sentence"?0.75:0.85;
+  u.pitch=1;
+  u.volume=1;
+  if(englishVoice) u.voice=englishVoice;
+  
+  // 如果朗读出错，在底部温和提示，不再弹窗
+  u.onerror = function(e){
+    $("fb").textContent = "⚠️ 语音未加载，请多试几次，或使用 Edge 的“大声朗读”功能";
+    $("fb").className = "fb no";
+  };
+  
+  window.speechSynthesis.speak(u);
+}
 function check(){
   if(!cl.length)return;
   $("card").classList.remove("masked");
